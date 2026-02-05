@@ -1,0 +1,33 @@
+# 忽略系统文件和编辑器配置
+*.ini
+.DS_Store
+Thumbs.db
+
+# 忽略编辑器配置
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 忽略日志文件
+logs/
+*.log
+
+# 忽略依赖文件（如果有）
+node_modules/
+server/node_modules/
+
+# 忽略数据库文件和数据
+server/database/
+*.db
+*.sqlite
+
+# 忽略环境配置文件
+.env
+.env.local
+server/.env
+
+# 忽略构建输出
+dist/
+build/

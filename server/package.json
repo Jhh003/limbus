@@ -1,0 +1,24 @@
+{
+  "name": "limbus-ranking-server",
+  "version": "1.0.0",
+  "description": "Limbus Company 排行榜后端服务",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "keywords": [
+    "limbus-company",
+    "ranking",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

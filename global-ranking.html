@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全球排行榜 - 今天蛋筒什么</title>
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/limbus-theme-v2.css">
+    <link rel="stylesheet" href="css/module/global-ranking.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="top-nav">
+        <div class="nav-brand">
+            <div class="logo-icon">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <div class="logo-text">
+                <h1>全球排行榜</h1>
+                <span class="logo-subtitle">Limbus Company · 单通竞速</span>
+            </div>
+        </div>
+        <div class="nav-meta">
+            <div class="version-tag">
+                <span class="label">版本</span>
+                <span class="value">1.0.0</span>
+            </div>
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> 返回主页
+            </a>
+        </div>
+    </nav>
+
+    <!-- 主容器 -->
+    <div class="ranking-container">
+        <!-- 提交记录按钮 -->
+        <div class="submit-ranking-banner">
+            <button id="submit-ranking-btn" class="submit-ranking-btn">
+                <i class="fas fa-plus-circle"></i>
+                提交我的通关记录
+            </button>
+        </div>
+
+        <!-- 筛选面板 -->
+        <aside class="ranking-filters">
+            <div class="filter-section">
+                <h3 class="filter-title">罪人筛选</h3>
+                <div class="filter-group" id="sinner-filters">
+                    <!-- 动态生成罪人按钮 -->
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3 class="filter-title">层数筛选</h3>
+                <div class="filter-group" id="floor-filters" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
+                    <button class="filter-btn" data-filter-type="floor" data-filter-value="5-1">第5层(普)</button>
+                    <button class="filter-btn" data-filter-type="floor" data-filter-value="5-2">第5层(困)</button>
+                    <button class="filter-btn" data-filter-type="floor" data-filter-value="10">第10层</button>
+                    <button class="filter-btn" data-filter-type="floor" data-filter-value="15">第15层</button>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3 class="filter-title">排序方式</h3>
+                <select id="sort-dropdown" class="sort-dropdown">
+                    <option value="time">按速度 (最快)</option>
+                    <option value="date">按时间 (最新)</option>
+                </select>
+            </div>
+
+            <div class="filter-section">
+                <button class="reset-filters-btn">
+                    <i class="fas fa-undo"></i> 重置筛选
+                </button>
+            </div>
+
+            <div class="filter-stats" id="filter-stats" style="display: none;">
+                显示 <span id="filtered-count">0</span> 条记录
+            </div>
+        </aside>
+
+        <!-- 排行榜内容 -->
+        <main class="ranking-content">
+            <!-- 加载状态 -->
+            <div id="loading-state" class="loading-state">
+                <div class="spinner"></div>
+                <p>正在加载排行榜...</p>
+            </div>
+
+            <!-- 空状态 -->
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <i class="fas fa-inbox"></i>
+                <p>暂无符合条件的记录</p>
+                <p class="empty-state-hint">成为第一个提交记录的人吧！</p>
+            </div>
+
+            <!-- 错误状态 -->
+            <div id="error-state" class="error-state" style="display: none;">
+                <i class="fas fa-exclamation-circle"></i>
+                <p>加载排行榜失败，请稍后重试</p>
+            </div>
+
+            <!-- 排行榜列表 -->
+            <div id="ranking-list" class="ranking-list" style="display: none;">
+                <!-- 动态生成排行榜卡片 -->
+            </div>
+
+            <!-- 分页器 -->
+            <div id="pagination" class="pagination-container" style="display: none;">
+                <!-- 动态生成分页按钮 -->
+            </div>
+        </main>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="ranking-page-footer">
+        <div class="footer-content">
+            <p>数据每30秒自动更新一次 | <a href="index.html?help">使用说明</a></p>
+            <p class="version-info">排行榜系统 v1.0.0 · 基于腾讯云CloudBase</p>
+        </div>
+    </footer>
+
+    <!-- 提交记录弹窗 -->
+    <div id="submit-modal" class="modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>提交通关记录</h2>
+                <button class="modal-close" id="modal-close-btn">&times;</button>
+            </div>
+            <form id="submit-ranking-form" class="submit-form">
+                <div class="form-group">
+                    <label for="username">用户名 <span class="required">*</span></label>
+                    <input type="text" id="username" name="username" required placeholder="请输入您的游戏ID或昵称">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sinner">罪人 <span class="required">*</span></label>
+                        <select id="sinner" name="sinner" required>
+                            <option value="">请选择罪人</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="persona">人格 <span class="required">*</span></label>
+                        <select id="persona" name="persona" required disabled>
+                            <option value="">请先选择罪人</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="time">通关时间（秒） <span class="required">*</span></label>
+                        <input type="number" id="time" name="time" required min="60" max="7200" placeholder="例：480">
+                        <small>合理范围内</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="floorLevel">通关楼层 <span class="required">*</span></label>
+                        <select id="floorLevel" name="floorLevel" required>
+                            <option value="">请选择楼层</option>
+                            <option value="1">第1层</option>
+                            <option value="2">第2层</option>
+                            <option value="3">第3层</option>
+                            <option value="4">第4层</option>
+                            <option value="5-1">第5层 - 普牢</option>
+                            <option value="5-2">第5层 - 困牢</option>
+                            <option value="6">第6层</option>
+                            <option value="7">第7层</option>
+                            <option value="8">第8层</option>
+                            <option value="9">第9层</option>
+                            <option value="10">第10层</option>
+                            <option value="11">第11层</option>
+                            <option value="12">第12层</option>
+                            <option value="13">第13层</option>
+                            <option value="14">第14层</option>
+                            <option value="15">第15层</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="egoGifts">EGO饰品配置</label>
+                    <textarea id="egoGifts" name="egoGifts" rows="2" placeholder="例：液袋（可选）"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="screenshotUrl">截图链接</label>
+                    <input type="url" id="screenshotUrl" name="screenshotUrl" placeholder="https://...（可选）">
+                </div>
+
+                <div class="form-group">
+                    <label for="videoUrl">视频链接</label>
+                    <input type="url" id="videoUrl" name="videoUrl" placeholder="https://...（可选）">
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">备注说明</label>
+                    <textarea id="notes" name="notes" rows="3" placeholder="通关心得、配置说明等（可选）"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancel-btn">取消</button>
+                    <button type="submit" class="btn-submit">提交记录</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 脚本 -->
+    <script type="module">
+        import { globalRankingController } from './js/controllers/globalRankingController.js';
+        import { sinnerData } from './data/characters.js';
+        import { logger } from './js/core/logger.js';
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                logger.info('[Global Ranking] 页面初始化开始');
+
+                // 生成罪人筛选按钮
+                const sinnerFilters = document.getElementById('sinner-filters');
+                if (sinnerFilters && sinnerData) {
+                    sinnerFilters.innerHTML = sinnerData.map(sinner => `
+                        <button class="filter-btn" data-filter-type="sinner" data-filter-value="${sinner.name}">
+                            ${sinner.name.split(' ')[0]}
+                        </button>
+                    `).join('');
+                }
+
+                // 初始化Controller
+                globalRankingController.initDOM({
+                    container: document.querySelector('.ranking-container'),
+                    list: document.getElementById('ranking-list'),
+                    pagination: document.getElementById('pagination'),
+                    filterBtns: document.querySelectorAll('.filter-btn'),
+                    sortDropdown: document.getElementById('sort-dropdown'),
+                    loading: document.getElementById('loading-state'),
+                    empty: document.getElementById('empty-state'),
+                    error: document.getElementById('error-state')
+                });
+
+                // 重置按钮事件
+                document.querySelector('.reset-filters-btn').addEventListener('click', () => {
+                    globalRankingController.setFilters({
+                        sinner: null,
+                        floorLevel: null,
+                        sortBy: 'time'
+                    });
+                    document.querySelectorAll('.filter-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    globalRankingController.loadRankings();
+                });
+
+                // 加载初始数据
+                await globalRankingController.loadRankings();
+
+                // 启用实时更新（30分钟刷新一次）
+                globalRankingController.startWatchingUpdates(1800000);
+
+                logger.info('[Global Ranking] 页面初始化完成');
+            } catch (error) {
+                logger.error('[Global Ranking] 初始化失败:', error);
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('error-state').style.display = 'block';
+            }
+        });
+
+        // 页面卸载时停止更新
+        window.addEventListener('beforeunload', () => {
+            if (globalRankingController && globalRankingController.stopWatchingUpdates) {
+                globalRankingController.stopWatchingUpdates();
+            }
+        });
+    </script>
+
+    <script type="module">
+        import { sinnerData } from './data/characters.js';
+        import { cloudbaseAPI } from './js/api/cloudbaseApi.js';
+
+        // 提交记录按钮
+        document.getElementById('submit-ranking-btn').addEventListener('click', () => {
+            document.getElementById('submit-modal').style.display = 'flex';
+        });
+
+        // 关闭弹窗
+        const closeModal = () => {
+            document.getElementById('submit-modal').style.display = 'none';
+            document.getElementById('submit-ranking-form').reset();
+            document.getElementById('persona').disabled = true;
+            document.getElementById('persona').innerHTML = '<option value="">请先选择罪人</option>';
+        };
+
+        document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+        document.getElementById('cancel-btn').addEventListener('click', closeModal);
+        document.querySelector('.modal-overlay').addEventListener('click', closeModal);
+
+        // 填充表单选项
+        const sinnerSelect = document.getElementById('sinner');
+        if (sinnerData && sinnerSelect) {
+            sinnerData.forEach(sinner => {
+                const option = document.createElement('option');
+                option.value = sinner.name;
+                option.textContent = sinner.name;
+                sinnerSelect.appendChild(option);
+            });
+        }
+
+        // 罪人选择变化时更新人格列表
+        sinnerSelect.addEventListener('change', (e) => {
+            const personaSelect = document.getElementById('persona');
+            personaSelect.innerHTML = '<option value="">请选择人格</option>';
+            personaSelect.disabled = false;
+            
+            const selectedSinnerName = e.target.value;
+            const selectedSinner = sinnerData.find(s => s.name === selectedSinnerName);
+            
+            if (selectedSinner && selectedSinner.personalities) {
+                selectedSinner.personalities.forEach(persona => {
+                    const option = document.createElement('option');
+                    option.value = persona.name;
+                    option.textContent = persona.name;
+                    personaSelect.appendChild(option);
+                });
+            } else {
+                personaSelect.disabled = true;
+            }
+        });
+
+        // 处理 URL 参数（从计时器跳转过来）
+        function handleUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const time = urlParams.get('time');
+            const sinner = urlParams.get('sinner');
+            const persona = urlParams.get('persona');
+
+            if (time) {
+                // 自动打开提交弹窗
+                document.getElementById('submit-modal').style.display = 'flex';
+                
+                // 填充时间
+                document.getElementById('time').value = time;
+                
+                // 填充罪人
+                if (sinner) {
+                    const sinnerSelect = document.getElementById('sinner');
+                    // 精确匹配：检查罪人名称是否包含在选项值中
+                    let selectedOption = null;
+                    for (let option of sinnerSelect.options) {
+                        // 例如：sinner="李箱" 应该匹配 option.value="李箱 (Yi Sang)"
+                        if (option.value.startsWith(sinner)) {
+                            selectedOption = option;
+                            break;
+                        }
+                    }
+                    
+                    if (selectedOption) {
+                        sinnerSelect.value = selectedOption.value;
+                        // 触发 change 事件来加载人格列表
+                        sinnerSelect.dispatchEvent(new Event('change'));
+                        
+                        // 填充人格（需要等人格列表加载）
+                        if (persona) {
+                            setTimeout(() => {
+                                const personaSelect = document.getElementById('persona');
+                                // 精确匹配人格名称
+                                for (let pOption of personaSelect.options) {
+                                    if (pOption.value === persona) {
+                                        personaSelect.value = pOption.value;
+                                        break;
+                                    }
+                                }
+                            }, 100);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 页面加载时处理 URL 参数
+        handleUrlParams();
+
+        // 提交表单
+        document.getElementById('submit-ranking-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                username: formData.get('username'),
+                sinner: formData.get('sinner'),
+                persona: formData.get('persona'),
+                time: parseInt(formData.get('time')),
+                floorLevel: formData.get('floorLevel'), // 保持字符串，支持 "5-1", "5-2"
+                egoGifts: formData.get('egoGifts') ? formData.get('egoGifts').split(/[,，、\n]/).map(s => s.trim()).filter(Boolean) : [],
+                screenshotUrl: formData.get('screenshotUrl') || null,
+                videoUrl: formData.get('videoUrl') || null,
+                notes: formData.get('notes') || null
+            };
+
+            try {
+                await cloudbaseAPI.submitRanking(data);
+                alert('✅ 提交成功！');
+                closeModal();
+                // 刷新排行榜
+                window.location.reload();
+            } catch (error) {
+                alert('❌ 提交失败：' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
