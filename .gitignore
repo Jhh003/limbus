@@ -31,3 +31,32 @@ server/.env
 # 忽略构建输出
 dist/
 build/
+
+# ==========================================
+# 服务器相关文件（不上传到GitHub）
+# ==========================================
+
+# 服务器后端代码
+server/
+
+# 管理后台页面
+admin.html
+admin-login.html
+
+# 全球排行榜页面（需要服务器支持）
+global-ranking.html
+
+# 服务器相关文档
+docs/
+
+# API相关文件
+js/api/
+
+# 服务器相关的控制器
+js/controllers/globalRankingController.js
+js/controllers/rankingApiController.js
+js/controllers/uploadController.js
+
+# 服务器相关的核心模块
+js/core/integration-guide.js
+js/core/logger.js
