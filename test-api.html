@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API 测试</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        pre {
+            background: #000;
+            padding: 15px;
+            overflow-x: auto;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .error {
+            color: #f44336;
+        }
+        .success {
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 API 调试工具</h1>
+    
+    <div class="test-section">
+        <h2>测试1: 获取所有排行榜数据（不筛选）</h2>
+        <button onclick="testGetAll()">执行测试</button>
+        <pre id="result1">等待测试...</pre>
+    </div>
+
+    <div class="test-section">
+        <h2>测试1.5: 模拟前端的实际请求</h2>
+        <button onclick="testRealRequest()">执行测试</button>
+        <pre id="result1_5">等待测试...</pre>
+    </div>
+
+    <div class="test-section">
+        <h2>测试2: 获取待审核数据</h2>
+        <button onclick="testGetPending()">执行测试</button>
+        <pre id="result2">等待测试...</pre>
+    </div>
+
+    <div class="test-section">
+        <h2>测试3: 测试排行榜页面是否能正常加载</h2>
+        <button onclick="window.open('global-ranking', '_blank')">打开排行榜页面</button>
+        <p>打开后按F12，在Console中输入：</p>
+        <pre>globalRankingController.rankings  // 查看加载的数据
+globalRankingController.filters    // 查看当前筛选条件</pre>
+    </div>
+
+    <div class="test-section">
+        <h2>测试4: 查看数据库原始数据（需要直接访问服务器）</h2>
+        <p>SSH 到服务器执行：</p>
+        <pre>cat /www/wwwroot/limbus/server/database/rankings.json</pre>
+    </div>
+
+    <script>
+        const API_BASE = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3000/api' 
+            : 'http://101.35.90.43/api';
+
+        async function testGetAll() {
+            const resultEl = document.getElementById('result1');
+            resultEl.innerHTML = '🔄 请求中...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/rankings/list?page=1&limit=100`);
+                const data = await response.json();
+                
+                resultEl.innerHTML = `<div class="success">✅ 请求成功</div>\n` + 
+                    `<strong>返回数据：</strong>\n` +
+                    JSON.stringify(data, null, 2) + '\n\n' +
+                    `<strong>记录总数：</strong> ${data.data?.records?.length || 0}\n` +
+                    `<strong>状态统计：</strong>\n` +
+                    JSON.stringify(
+                        data.data?.records?.reduce((acc, r) => {
+                            acc[r.status] = (acc[r.status] || 0) + 1;
+                            return acc;
+                        }, {}),
+                        null,
+                        2
+                    );
+            } catch (error) {
+                resultEl.innerHTML = `<div class="error">❌ 请求失败</div>\n${error.message}\n${error.stack}`;
+            }
+        }
+
+        async function testRealRequest() {
+            const resultEl = document.getElementById('result1_5');
+            resultEl.innerHTML = '🔄 模拟前端实际请求...';
+            
+            try {
+                // 完全模拟前端的请求
+                const params = new URLSearchParams({
+                    page: 1,
+                    limit: 20,
+                    sortBy: 'time',
+                    status: 'verified'  // 前端传的这个参数
+                });
+                
+                const url = `${API_BASE}/rankings/list?${params}`;
+                resultEl.innerHTML = `🔄 请求URL: ${url}\n\n`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                resultEl.innerHTML += `<div class="success">✅ 请求成功</div>\n` + 
+                    `<strong>完整返回：</strong>\n` +
+                    JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultEl.innerHTML += `<div class="error">❌ 请求失败</div>\n${error.message}`;
+            }
+        }
+
+        async function testGetPending() {
+            const resultEl = document.getElementById('result2');
+            resultEl.innerHTML = '🔄 请求中...（需要管理员Token）';
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                if (!token) {
+                    resultEl.innerHTML = '<div class="error">❌ 未找到管理员Token，请先登录管理后台</div>';
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/rankings/pending`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                
+                resultEl.innerHTML = `<div class="success">✅ 请求成功</div>\n` + 
+                    `<strong>待审核记录：</strong>\n` +
+                    JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultEl.innerHTML = `<div class="error">❌ 请求失败</div>\n${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

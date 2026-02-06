@@ -371,7 +371,7 @@ export class TimerController {
         }
 
         // 跳转到排行榜页面
-        window.location.href = `global-ranking.html?${params.toString()}`;
+        window.location.href = `global-ranking?${params.toString()}`;
     }
 
     /**
