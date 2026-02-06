@@ -117,6 +117,9 @@ function initializeDOMAndEvents(controllers, services) {
         resultSinnerFallback: document.getElementById('result-sinner-fallback'),
         resultPersonaImg: document.getElementById('result-persona-img'),
         resultPersonaFallback: document.getElementById('result-persona-fallback'),
+        resultGuidesSection: document.getElementById('result-guides-section'),
+        guidesBtn: document.getElementById('guides-btn'),
+        guidesCount: document.getElementById('guides-count'),
         
         // 筛选容器
         sinnerFilterContainer: document.getElementById('sinner-filter'),

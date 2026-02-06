@@ -173,6 +173,37 @@ body {
     margin-left: auto;
 }
 
+/* 攻略中心导航按钮 */
+.nav-btn-guides {
+    position: relative;
+    border-color: rgba(201, 79, 79, 0.4);
+    color: var(--lc-red);
+}
+
+.nav-btn-guides:hover {
+    border-color: var(--lc-red);
+    background: rgba(201, 79, 79, 0.1);
+    color: var(--lc-red);
+}
+
+.nav-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    padding: 2px 6px;
+    background: linear-gradient(135deg, #c41e3a, #ff6b6b);
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
 /* ========================================
    5. 页面容器
    ======================================== */
@@ -657,6 +688,78 @@ body {
     50% { transform: translateY(5px); }
 }
 
+/* ========================================
+   12.5 攻略入口
+   ======================================== */
+.result-guides-section {
+    margin-top: 20px;
+    animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.guides-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    color: var(--lc-text-muted);
+    font-size: 12px;
+}
+
+.guides-divider::before,
+.guides-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--lc-border-light), transparent);
+}
+
+.guides-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, rgba(201, 79, 79, 0.15), rgba(201, 79, 79, 0.05));
+    border: 1px solid rgba(201, 79, 79, 0.4);
+    border-radius: 8px;
+    color: var(--lc-red);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.guides-btn:hover {
+    background: linear-gradient(135deg, rgba(201, 79, 79, 0.25), rgba(201, 79, 79, 0.1));
+    border-color: var(--lc-red);
+    box-shadow: 0 0 20px rgba(201, 79, 79, 0.3);
+    transform: translateY(-2px);
+}
+
+.guides-btn i {
+    font-size: 16px;
+}
+
+.guides-count {
+    padding: 2px 8px;
+    background: rgba(201, 79, 79, 0.3);
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
 /* 响应式 */
 @media (max-width: 1024px) {
     .result-final {
@@ -673,6 +776,11 @@ body {
     .avatar-fallback svg {
         width: 28px;
         height: 28px;
+    }
+    
+    .guides-btn {
+        padding: 12px 16px;
+        font-size: 13px;
     }
 }
 

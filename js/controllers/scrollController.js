@@ -51,7 +51,10 @@ export class ScrollController {
             resultSinnerImg: null,
             resultSinnerFallback: null,
             resultPersonaImg: null,
-            resultPersonaFallback: null
+            resultPersonaFallback: null,
+            resultGuidesSection: null,
+            guidesBtn: null,
+            guidesCount: null
         };
         
         this.scrollIntervals = {
@@ -651,6 +654,10 @@ export class ScrollController {
                     if (this.dom.resultPersonaFallback) this.dom.resultPersonaFallback.style.display = 'flex';
                 };
             }
+            
+            // 检查是否有攻略
+            this.checkAndShowGuides(currentSelectedSinner, currentSelectedPersona);
+            
         } else if (currentSelectedSinner) {
             // 只有罪人没有人格时，显示过渡状态
             if (this.dom.resultFinalEl) this.dom.resultFinalEl.style.display = 'none';
@@ -704,6 +711,53 @@ export class ScrollController {
         if (this.dom.resultSinnerFallback) this.dom.resultSinnerFallback.style.display = 'flex';
         if (this.dom.resultPersonaImg) { this.dom.resultPersonaImg.style.display = 'none'; this.dom.resultPersonaImg.src = ''; }
         if (this.dom.resultPersonaFallback) this.dom.resultPersonaFallback.style.display = 'flex';
+        if (this.dom.resultGuidesSection) this.dom.resultGuidesSection.style.display = 'none';
+    }
+
+    /**
+     * 检查并显示攻略入口
+     * @param {Object} sinner - 罪人数据
+     * @param {Object} persona - 人格数据
+     */
+    async checkAndShowGuides(sinner, persona) {
+        if (!this.dom.resultGuidesSection || !this.dom.guidesBtn) return;
+        
+        try {
+            const sinnerName = sinner.name.split(' ')[0]; // 获取罪人中文名
+            const personaName = typeof persona === 'object' ? persona.name : persona;
+            
+            // 调用API检查是否有攻略
+            const response = await fetch(
+                `/api/guides/check/${encodeURIComponent(sinnerName)}/${encodeURIComponent(personaName)}`
+            );
+            
+            if (!response.ok) {
+                // API不可用时不显示攻略入口
+                this.dom.resultGuidesSection.style.display = 'none';
+                return;
+            }
+            
+            const result = await response.json();
+            
+            if (result.success && result.data.hasGuides) {
+                // 有攻略，显示入口
+                this.dom.resultGuidesSection.style.display = 'block';
+                this.dom.guidesBtn.href = `guides.html?sinner=${encodeURIComponent(sinnerName)}&persona=${encodeURIComponent(personaName)}`;
+                
+                if (this.dom.guidesCount) {
+                    this.dom.guidesCount.textContent = `(${result.data.count}篇)`;
+                }
+            } else {
+                // 没有攻略，隐藏入口
+                this.dom.resultGuidesSection.style.display = 'none';
+            }
+        } catch (error) {
+            // 出错时不显示攻略入口，避免影响用户体验
+            logger.debug('[ScrollController] 检查攻略失败:', error);
+            if (this.dom.resultGuidesSection) {
+                this.dom.resultGuidesSection.style.display = 'none';
+            }
+        }
     }
 
     /**

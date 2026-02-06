@@ -114,7 +114,7 @@ const i18nEN = {
     helpTips: '⭐ Tips',
     helpTip1: 'Time is in seconds; homepage timer can auto-fill',
     helpTip2: 'Ensure accurate info; false data may result in ban',
-    helpTip3: 'Floor 5 has Normal (Normal) and Hard (Hard) modes',
+    helpTip3: 'Floor 5 has Normal and Hard modes',
     
     // Status Labels
     statusPending: 'Pending',

@@ -1,0 +1,813 @@
+/* 攻略中心样式 */
+
+.guides-container {
+    display: flex;
+    gap: 20px;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: calc(100vh - 80px);
+}
+
+/* 筛选面板 */
+.guides-filters {
+    width: 260px;
+    flex-shrink: 0;
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+    border: 1px solid rgba(196, 30, 58, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+}
+
+.filter-section {
+    margin-bottom: 24px;
+}
+
+.filter-section:last-child {
+    margin-bottom: 0;
+}
+
+.filter-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #c41e3a;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-title i {
+    font-size: 12px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: #b8b8b8;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.filter-btn:hover {
+    background: rgba(196, 30, 58, 0.1);
+    border-color: rgba(196, 30, 58, 0.3);
+    color: #fff;
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, rgba(196, 30, 58, 0.2), rgba(196, 30, 58, 0.1));
+    border-color: #c41e3a;
+    color: #fff;
+}
+
+.sinner-avatar-mini {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.floor-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+}
+
+.floor-filter-grid .filter-btn {
+    justify-content: center;
+    padding: 8px;
+}
+
+.sort-select {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(196, 30, 58, 0.3);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.sort-select:focus {
+    outline: none;
+    border-color: #c41e3a;
+}
+
+.sort-select option {
+    background: #1a1a2e;
+}
+
+/* 主内容区 */
+.guides-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.guides-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 1px solid rgba(196, 30, 58, 0.3);
+    border-radius: 12px;
+}
+
+.current-filter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #b8b8b8;
+    font-size: 14px;
+}
+
+.current-filter .separator {
+    color: #c41e3a;
+}
+
+.guides-count {
+    color: #888;
+    font-size: 14px;
+}
+
+.guides-count span {
+    color: #c41e3a;
+    font-weight: 600;
+}
+
+/* 攻略网格 */
+.guides-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.guide-card {
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+    border: 1px solid rgba(196, 30, 58, 0.2);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.guide-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(196, 30, 58, 0.5);
+    box-shadow: 0 8px 32px rgba(196, 30, 58, 0.2);
+}
+
+.guide-cover {
+    position: relative;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+}
+
+.guide-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.guide-card:hover .guide-cover img {
+    transform: scale(1.05);
+}
+
+.guide-cover-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    color: rgba(196, 30, 58, 0.3);
+}
+
+.guide-media-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 4px 10px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 20px;
+    font-size: 12px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.guide-floor-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 10px;
+    background: linear-gradient(135deg, #c41e3a, #8b0000);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.guide-info {
+    padding: 16px;
+}
+
+.guide-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 8px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.guide-meta {
+    margin-bottom: 12px;
+}
+
+.guide-sinner {
+    font-size: 13px;
+    color: #888;
+}
+
+.guide-stats {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: #666;
+}
+
+.guide-stats i {
+    margin-right: 4px;
+}
+
+/* 空状态 */
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.empty-state i {
+    font-size: 64px;
+    margin-bottom: 16px;
+    color: #c41e3a;
+    opacity: 0.3;
+}
+
+.empty-state p {
+    font-size: 16px;
+}
+
+/* 分页 */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 30px;
+}
+
+.page-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(196, 30, 58, 0.2);
+    border-radius: 8px;
+    color: #b8b8b8;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-btn:hover:not(:disabled) {
+    background: rgba(196, 30, 58, 0.1);
+    border-color: rgba(196, 30, 58, 0.4);
+    color: #fff;
+}
+
+.page-btn.active {
+    background: linear-gradient(135deg, #c41e3a, #8b0000);
+    border-color: #c41e3a;
+    color: #fff;
+}
+
+.page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.page-ellipsis {
+    color: #666;
+    padding: 0 8px;
+}
+
+/* 弹窗 */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.guide-modal-content {
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+    border: 1px solid rgba(196, 30, 58, 0.4);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    transform: scale(0.9);
+    transition: transform 0.3s;
+}
+
+.modal-overlay.active .guide-modal-content {
+    transform: scale(1);
+}
+
+.modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    background: #c41e3a;
+    border-color: #c41e3a;
+}
+
+.guide-detail {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.guide-detail::-webkit-scrollbar {
+    width: 8px;
+}
+
+.guide-detail::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.guide-detail::-webkit-scrollbar-thumb {
+    background: rgba(196, 30, 58, 0.4);
+    border-radius: 4px;
+}
+
+.guide-detail-header {
+    padding: 30px;
+    border-bottom: 1px solid rgba(196, 30, 58, 0.2);
+}
+
+.guide-detail-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 16px;
+    line-height: 1.4;
+}
+
+.guide-detail-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: #888;
+}
+
+.guide-detail-meta i {
+    margin-right: 4px;
+    color: #c41e3a;
+}
+
+.guide-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag {
+    padding: 4px 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    font-size: 12px;
+    color: #b8b8b8;
+}
+
+.tag-sinner {
+    background: rgba(196, 30, 58, 0.2);
+    color: #fff;
+}
+
+.tag-persona {
+    background: rgba(65, 105, 225, 0.2);
+    color: #fff;
+}
+
+.tag-floor {
+    background: rgba(34, 139, 34, 0.2);
+    color: #fff;
+}
+
+.guide-detail-content {
+    padding: 30px;
+}
+
+.guide-description {
+    font-size: 15px;
+    line-height: 1.8;
+    color: #ccc;
+    margin-bottom: 30px;
+    white-space: pre-wrap;
+}
+
+.guide-media-section {
+    margin-top: 30px;
+}
+
+.guide-media-section h3 {
+    font-size: 18px;
+    color: #fff;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.guide-media-section h3 i {
+    color: #c41e3a;
+}
+
+.guide-media-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* 视频容器 - 延迟加载 */
+.guide-video {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #000;
+}
+
+.guide-video iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* 视频占位符 */
+.video-placeholder {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+}
+
+.video-cover {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-cover img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+}
+
+.video-placeholder:hover .video-cover img {
+    opacity: 1;
+}
+
+/* 没有封面时的默认背景 */
+.video-cover::before {
+    content: '\f144';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 400;
+    font-size: 64px;
+    color: rgba(196, 30, 58, 0.3);
+    position: absolute;
+    z-index: 1;
+}
+
+.video-cover img[src=""] + ::before,
+.video-cover img:not([src]) + ::before {
+    display: block;
+}
+
+.play-overlay {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 40px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 12px;
+    backdrop-filter: blur(4px);
+    transition: all 0.3s;
+}
+
+.video-placeholder:hover .play-overlay {
+    background: rgba(196, 30, 58, 0.8);
+    transform: scale(1.05);
+}
+
+.play-overlay i {
+    font-size: 48px;
+    color: #fff;
+}
+
+.play-overlay span {
+    font-size: 14px;
+    color: #fff;
+    font-weight: 600;
+}
+
+/* 新窗口打开按钮 */
+.open-new-tab {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    padding: 8px 16px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    color: #fff;
+    font-size: 12px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 3;
+    transition: all 0.2s;
+}
+
+.open-new-tab:hover {
+    background: rgba(196, 30, 58, 0.8);
+    border-color: #c41e3a;
+}
+
+/* 图片 */
+.guide-image {
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: zoom-in;
+}
+
+.guide-image img {
+    width: 100%;
+    display: block;
+    transition: transform 0.3s;
+}
+
+.guide-image:hover img {
+    transform: scale(1.02);
+}
+
+.guide-detail-actions {
+    display: flex;
+    gap: 12px;
+    padding: 20px 30px 30px;
+    border-top: 1px solid rgba(196, 30, 58, 0.2);
+}
+
+.action-btn {
+    flex: 1;
+    padding: 14px 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(196, 30, 58, 0.3);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.action-btn:hover {
+    background: rgba(196, 30, 58, 0.1);
+    border-color: rgba(196, 30, 58, 0.5);
+}
+
+.like-btn:hover,
+.like-btn.liked {
+    background: rgba(196, 30, 58, 0.2);
+    border-color: #c41e3a;
+}
+
+.like-btn.liked i {
+    color: #c41e3a;
+}
+
+/* 图片弹窗 */
+.image-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.image-modal img {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+}
+
+.image-modal .close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.image-modal .close-btn:hover {
+    background: #c41e3a;
+}
+
+/* 加载动画 */
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading-spinner {
+    text-align: center;
+    color: #fff;
+}
+
+.loading-spinner i {
+    font-size: 48px;
+    color: #c41e3a;
+    margin-bottom: 16px;
+}
+
+.loading-spinner span {
+    display: block;
+    font-size: 14px;
+}
+
+/* 响应式 */
+@media (max-width: 1200px) {
+    .guides-container {
+        flex-direction: column;
+    }
+
+    .guides-filters {
+        width: 100%;
+        position: static;
+    }
+
+    .filter-group {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        flex: 0 0 auto;
+    }
+
+    .floor-filter-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .guides-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .guide-modal-content {
+        width: 100%;
+        height: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .guide-detail-header,
+    .guide-detail-content {
+        padding: 20px;
+    }
+
+    .guide-detail-header h2 {
+        font-size: 20px;
+    }
+
+    .play-overlay {
+        padding: 16px 32px;
+    }
+
+    .play-overlay i {
+        font-size: 36px;
+    }
+
+    .open-new-tab {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 480px) {
+    .guides-grid {
+        grid-template-columns: 1fr;
+    }
+}

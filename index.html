@@ -73,6 +73,14 @@
             </svg>
             <span>全球排行榜</span>
         </a>
+        <a href="/guides" class="nav-btn nav-btn-guides" style="text-decoration:none;color:inherit;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+            <span>单通攻略</span>
+            <span class="nav-badge">NEW</span>
+        </a>
         <button id="help-btn" class="nav-btn nav-btn-right">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
                 <circle cx="12" cy="12" r="10"/>
@@ -241,6 +249,18 @@
                                     </div>
                                     <div class="result-persona-name" id="selected-persona">未选择</div>
                                 </div>
+                            </div>
+                            
+                            <!-- 攻略入口 -->
+                            <div class="result-guides-section" id="result-guides-section" style="display: none;">
+                                <div class="guides-divider">
+                                    <span>社区攻略</span>
+                                </div>
+                                <a href="#" class="guides-btn" id="guides-btn" target="_blank">
+                                    <i class="fas fa-book-open"></i>
+                                    <span>查看该人格单通攻略</span>
+                                    <span class="guides-count" id="guides-count"></span>
+                                </a>
                             </div>
                         </div>
                     </div>

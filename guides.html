@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人格单通攻略 - 今天蛋筒什么</title>
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/limbus-theme-v2.css">
+    <link rel="stylesheet" href="css/module/guides.css">
+    <link rel="stylesheet" href="css/custom-dialog.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="top-nav">
+        <div class="nav-brand">
+            <div class="logo-icon">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <div class="logo-text">
+                <h1>人格单通攻略</h1>
+                <span class="logo-subtitle">Limbus Company · 社区攻略中心</span>
+            </div>
+        </div>
+        <div class="nav-meta">
+            <div class="version-tag">
+                <span class="label">版本</span>
+                <span class="value">1.6.0</span>
+            </div>
+            <button onclick="openUserSubmitModal()" class="nav-btn nav-btn-guides">
+                <i class="fas fa-plus-circle"></i>
+                <span>投稿攻略</span>
+            </button>
+            <a href="/" class="nav-btn nav-btn-primary">
+                <i class="fas fa-random"></i>
+                <span>去抽人格</span>
+            </a>
+            <a href="/global-ranking" class="nav-btn">
+                <i class="fas fa-trophy"></i>
+                <span>排行榜</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- 主容器 -->
+    <div class="guides-container">
+        <!-- 筛选面板 -->
+        <aside class="guides-filters">
+            <div class="filter-section">
+                <h3 class="filter-title"><i class="fas fa-user"></i> 选择罪人</h3>
+                <div class="filter-group" id="sinner-filters">
+                    <button class="filter-btn active" data-sinner="all">
+                        <i class="fas fa-th"></i> 全部
+                    </button>
+                    <!-- 动态生成 -->
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3 class="filter-title"><i class="fas fa-mask"></i> 选择人格</h3>
+                <div class="filter-group" id="persona-filters">
+                    <button class="filter-btn active" data-persona="all">
+                        <i class="fas fa-th"></i> 全部人格
+                    </button>
+                    <!-- 动态生成 -->
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3 class="filter-title"><i class="fas fa-layer-group"></i> 挑战层数</h3>
+                <div class="floor-filter-grid" id="floor-filters">
+                    <button class="filter-btn active" data-floor="all">全部</button>
+                    <button class="filter-btn" data-floor="5-2">5-H</button>
+                    <button class="filter-btn" data-floor="10">10</button>
+                    <button class="filter-btn" data-floor="15">15</button>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3 class="filter-title"><i class="fas fa-sort"></i> 排序方式</h3>
+                <select id="sort-select" class="sort-select">
+                    <option value="created_at">最新发布</option>
+                    <option value="views">最多浏览</option>
+                    <option value="likes">最多点赞</option>
+                </select>
+            </div>
+        </aside>
+
+        <!-- 攻略列表区域 -->
+        <main class="guides-main">
+            <!-- 当前筛选状态 -->
+            <div class="guides-header">
+                <div class="current-filter">
+                    <span id="current-sinner">全部罪人</span>
+                    <span class="separator">·</span>
+                    <span id="current-persona">全部人格</span>
+                    <span class="separator">·</span>
+                    <span id="current-floor">全部层数</span>
+                </div>
+                <div class="guides-count">
+                    共 <span id="total-guides">0</span> 篇攻略
+                </div>
+            </div>
+
+            <!-- 攻略卡片网格 -->
+            <div class="guides-grid" id="guides-grid">
+                <!-- 动态生成攻略卡片 -->
+            </div>
+
+            <!-- 分页 -->
+            <div class="pagination" id="pagination">
+                <!-- 动态生成 -->
+            </div>
+        </main>
+    </div>
+
+    <!-- 攻略详情弹窗 -->
+    <div class="modal-overlay" id="guide-modal">
+        <div class="modal-content guide-modal-content">
+            <button class="modal-close" onclick="closeGuideModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="guide-detail" id="guide-detail">
+                <!-- 动态填充 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载动画 -->
+    <div class="loading-overlay" id="loading">
+        <div class="loading-spinner">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            <span>加载中...</span>
+        </div>
+    </div>
+
+    <script type="module">
+        import { sinnerData } from './data/characters.js';
+
+        const API_BASE = '/api';
+        let currentState = {
+            sinner: 'all',
+            persona: 'all',
+            floor: 'all',
+            sortBy: 'created_at',
+            page: 1,
+            pageSize: 12
+        };
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initSinnerFilters();
+            initEventListeners();
+            loadGuides();
+        });
+
+        // 初始化罪人筛选按钮
+        function initSinnerFilters() {
+            const container = document.getElementById('sinner-filters');
+            sinnerData.forEach(sinner => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn sinner-btn';
+                btn.dataset.sinner = sinner.name.split(' ')[0];
+                btn.innerHTML = `
+                    <img src="${sinner.avatar}" alt="${sinner.name}" class="sinner-avatar-mini">
+                    <span>${sinner.name.split(' ')[0]}</span>
+                `;
+                btn.addEventListener('click', () => {
+                    setActiveFilter('sinner', btn.dataset.sinner);
+                    updatePersonaFilters(btn.dataset.sinner);
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        // 更新人格筛选按钮
+        function updatePersonaFilters(sinnerName) {
+            const container = document.getElementById('persona-filters');
+            container.innerHTML = `
+                <button class="filter-btn active" data-persona="all">
+                    <i class="fas fa-th"></i> 全部人格
+                </button>
+            `;
+
+            if (sinnerName === 'all') return;
+
+            const sinner = sinnerData.find(s => s.name.includes(sinnerName));
+            if (sinner) {
+                sinner.personalities.forEach(persona => {
+                    const btn = document.createElement('button');
+                    btn.className = 'filter-btn persona-btn';
+                    btn.dataset.persona = persona.name;
+                    btn.innerHTML = `<span>${persona.name}</span>`;
+                    btn.addEventListener('click', () => setActiveFilter('persona', persona.name));
+                    container.appendChild(btn);
+                });
+            }
+        }
+
+        // 设置活跃筛选
+        function setActiveFilter(type, value) {
+            currentState[type] = value;
+            currentState.page = 1;
+
+            // 更新按钮状态
+            document.querySelectorAll(`[data-${type}]`).forEach(btn => {
+                btn.classList.toggle('active', btn.dataset[type] === value);
+            });
+
+            // 更新显示文本
+            updateFilterDisplay();
+            loadGuides();
+        }
+
+        // 更新筛选显示
+        function updateFilterDisplay() {
+            const sinnerName = currentState.sinner === 'all' ? '全部罪人' : currentState.sinner;
+            const personaName = currentState.persona === 'all' ? '全部人格' : currentState.persona;
+            const floorName = currentState.floor === 'all' ? '全部层数' : `第${currentState.floor}层`;
+
+            document.getElementById('current-sinner').textContent = sinnerName;
+            document.getElementById('current-persona').textContent = personaName;
+            document.getElementById('current-floor').textContent = floorName;
+        }
+
+        // 初始化事件监听
+        function initEventListeners() {
+            // 层数筛选
+            document.querySelectorAll('#floor-filters .filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setActiveFilter('floor', btn.dataset.floor);
+                });
+            });
+
+            // 排序
+            document.getElementById('sort-select').addEventListener('change', (e) => {
+                currentState.sortBy = e.target.value;
+                currentState.page = 1;
+                loadGuides();
+            });
+
+            // 点击遮罩关闭弹窗
+            document.getElementById('guide-modal').addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal-overlay')) {
+                    closeGuideModal();
+                }
+            });
+        }
+
+        // 加载攻略列表
+        async function loadGuides() {
+            showLoading(true);
+            try {
+                const params = new URLSearchParams({
+                    page: currentState.page,
+                    pageSize: currentState.pageSize,
+                    sortBy: currentState.sortBy
+                });
+                if (currentState.sinner !== 'all') params.append('sinner', currentState.sinner);
+                if (currentState.persona !== 'all') params.append('persona', currentState.persona);
+                if (currentState.floor !== 'all') params.append('floorLevel', currentState.floor);
+
+                const response = await fetch(`${API_BASE}/guides/list?${params}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    renderGuides(result.data.guides);
+                    renderPagination(result.data.pagination);
+                    document.getElementById('total-guides').textContent = result.data.pagination.total;
+                }
+            } catch (error) {
+                console.error('加载攻略失败:', error);
+                showEmptyState('加载失败，请检查服务器是否运行');
+            }
+            showLoading(false);
+        }
+
+        // 渲染攻略卡片
+        function renderGuides(guides) {
+            const container = document.getElementById('guides-grid');
+            
+            if (guides.length === 0) {
+                showEmptyState('暂无该筛选条件下的攻略');
+                return;
+            }
+
+            container.innerHTML = guides.map(guide => `
+                <div class="guide-card" onclick="window.openGuideDetail(${guide.id})">
+                    <div class="guide-cover">
+                        ${guide.coverUrl ? 
+                            `<img src="${guide.coverUrl}" alt="${guide.title}">` :
+                            `<div class="guide-cover-placeholder">
+                                <i class="fas fa-${getMediaIcon(guide.mediaType)}"></i>
+                            </div>`
+                        }
+                        <div class="guide-media-badge">
+                            <i class="fas fa-${getMediaIcon(guide.mediaType)}"></i>
+                            ${getMediaLabel(guide.mediaType)}
+                        </div>
+                        <div class="guide-floor-badge">${guide.floorLevel}层</div>
+                    </div>
+                    <div class="guide-info">
+                        <h3 class="guide-title">${guide.title}</h3>
+                        <div class="guide-meta">
+                            <span class="guide-sinner">${guide.sinner} · ${guide.persona}</span>
+                        </div>
+                        <div class="guide-stats">
+                            <span><i class="fas fa-eye"></i> ${guide.views || 0}</span>
+                            <span><i class="fas fa-heart"></i> ${guide.likes || 0}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 获取媒体图标
+        function getMediaIcon(type) {
+            const icons = {
+                video: 'video',
+                image: 'image',
+                text: 'file-alt',
+                mixed: 'layer-group'
+            };
+            return icons[type] || 'file-alt';
+        }
+
+        // 获取媒体标签
+        function getMediaLabel(type) {
+            const labels = {
+                video: '视频',
+                image: '图文',
+                text: '纯文',
+                mixed: '混合'
+            };
+            return labels[type] || '图文';
+        }
+
+        // 渲染分页
+        function renderPagination(pagination) {
+            const container = document.getElementById('pagination');
+            const { page, totalPages } = pagination;
+
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            
+            // 上一页
+            html += `<button class="page-btn" ${page <= 1 ? 'disabled' : ''} onclick="window.changePage(${page - 1})">
+                <i class="fas fa-chevron-left"></i>
+            </button>`;
+
+            // 页码
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) {
+                    html += `<button class="page-btn ${i === page ? 'active' : ''}" onclick="window.changePage(${i})">${i}</button>`;
+                } else if (i === page - 3 || i === page + 3) {
+                    html += `<span class="page-ellipsis">...</span>`;
+                }
+            }
+
+            // 下一页
+            html += `<button class="page-btn" ${page >= totalPages ? 'disabled' : ''} onclick="window.changePage(${page + 1})">
+                <i class="fas fa-chevron-right"></i>
+            </button>`;
+
+            container.innerHTML = html;
+        }
+
+        // 切换页面
+        window.changePage = function(page) {
+            currentState.page = page;
+            loadGuides();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // 打开攻略详情
+        window.openGuideDetail = async function(id) {
+            showLoading(true);
+            try {
+                const response = await fetch(`${API_BASE}/guides/${id}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    renderGuideDetail(result.data);
+                    document.getElementById('guide-modal').classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            } catch (error) {
+                console.error('加载攻略详情失败:', error);
+            }
+            showLoading(false);
+        };
+
+        // 渲染攻略详情
+        function renderGuideDetail(guide) {
+            const container = document.getElementById('guide-detail');
+            
+            container.innerHTML = `
+                <div class="guide-detail-header">
+                    <h2>${guide.title}</h2>
+                    <div class="guide-detail-meta">
+                        <span class="guide-author"><i class="fas fa-user"></i> ${guide.author}</span>
+                        <span class="guide-date"><i class="fas fa-calendar"></i> ${new Date(guide.created_at).toLocaleDateString()}</span>
+                        <span class="guide-views"><i class="fas fa-eye"></i> ${guide.views} 浏览</span>
+                    </div>
+                    <div class="guide-tags">
+                        <span class="tag tag-sinner">${guide.sinner}</span>
+                        <span class="tag tag-persona">${guide.persona}</span>
+                        <span class="tag tag-floor">${guide.floorLevel}层</span>
+                        ${guide.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                </div>
+
+                <div class="guide-detail-content">
+                    <div class="guide-description">
+                        ${guide.content}
+                    </div>
+
+                    ${guide.mediaUrls && guide.mediaUrls.length > 0 ? `
+                        <div class="guide-media-section">
+                            <h3><i class="fas fa-${getMediaIcon(guide.mediaType)}"></i> 攻略内容</h3>
+                            <div class="guide-media-list">
+                                ${guide.mediaUrls.map((url, index) => {
+                                    if (guide.mediaType === 'video') {
+                                        const embedUrl = convertToEmbedUrl(url);
+                                        return `<div class="guide-video" id="video-container-${index}">
+                                            <div class="video-placeholder" onclick="loadVideo(this, '${embedUrl}')">
+                                                <div class="video-cover">
+                                                    <img src="${getVideoCover(url)}" alt="视频封面" onerror="this.style.display='none'">
+                                                    <div class="play-overlay">
+                                                        <i class="fas fa-play-circle"></i>
+                                                        <span>点击播放</span>
+                                                    </div>
+                                                </div>
+                                                <a href="${url}" target="_blank" class="open-new-tab" onclick="event.stopPropagation()">
+                                                    <i class="fas fa-external-link-alt"></i> 新窗口打开
+                                                </a>
+                                            </div>
+                                        </div>`;
+                                    } else {
+                                        return `<div class="guide-image">
+                                            <img src="${url}" alt="攻略图片" onclick="window.openImageModal('${url}')">
+                                        </div>`;
+                                    }
+                                }).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <div class="guide-detail-actions">
+                    <button class="action-btn like-btn" onclick="window.likeGuide(${guide.id})">
+                        <i class="fas fa-heart"></i>
+                        <span>点赞 (${guide.likes})</span>
+                    </button>
+                    <button class="action-btn share-btn" onclick="window.shareGuide(${guide.id})">
+                        <i class="fas fa-share-alt"></i>
+                        <span>分享</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        // 转换视频链接为嵌入链接
+        function convertToEmbedUrl(url) {
+            // B站
+            if (url.includes('bilibili.com')) {
+                const bvid = url.match(/BV[\w]+/) || url.match(/av\d+/);
+                if (bvid) {
+                    return `https://player.bilibili.com/player.html?bvid=${bvid[0]}&page=1`;
+                }
+            }
+            // YouTube
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                const videoId = url.match(/(?:v=|\/)([\w-]{11})/);
+                if (videoId) {
+                    return `https://www.youtube.com/embed/${videoId[1]}`;
+                }
+            }
+            return url;
+        }
+
+        // 获取视频封面
+        function getVideoCover(url) {
+            // YouTube封面
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                const videoId = url.match(/(?:v=|\/)([\w-]{11})/);
+                if (videoId) {
+                    return `https://img.youtube.com/vi/${videoId[1]}/mqdefault.jpg`;
+                }
+            }
+            // B站封面需要通过API获取，这里返回空，让onerror处理显示默认占位符
+            return '';
+        }
+
+        // 延迟加载视频
+        window.loadVideo = function(element, embedUrl) {
+            const container = element.closest('.guide-video');
+            container.innerHTML = `<iframe src="${embedUrl}" frameborder="0" allowfullscreen></iframe>`;
+        };
+
+        // 关闭弹窗
+        window.closeGuideModal = function() {
+            document.getElementById('guide-modal').classList.remove('active');
+            document.body.style.overflow = '';
+        };
+
+        // 点赞攻略
+        window.likeGuide = async function(id) {
+            try {
+                const response = await fetch(`${API_BASE}/guides/${id}/like`, { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    const btn = document.querySelector('.like-btn span');
+                    btn.textContent = `点赞 (${result.data.likes})`;
+                    btn.closest('.action-btn').classList.add('liked');
+                }
+            } catch (error) {
+                console.error('点赞失败:', error);
+            }
+        };
+
+        // 分享攻略
+        window.shareGuide = function(id) {
+            const url = `${window.location.origin}/guides?id=${id}`;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(url).then(() => {
+                    showMessage('链接已复制到剪贴板', 'success');
+                });
+            } else {
+                prompt('复制以下链接分享:', url);
+            }
+        };
+
+        // 图片弹窗
+        window.openImageModal = function(url) {
+            const modal = document.createElement('div');
+            modal.className = 'image-modal';
+            modal.innerHTML = `<img src="${url}" alt="攻略图片"><button class="close-btn" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>`;
+            modal.addEventListener('click', () => modal.remove());
+            document.body.appendChild(modal);
+        };
+
+        // 显示/隐藏加载
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'flex' : 'none';
+        }
+
+        // 显示空状态
+        function showEmptyState(message) {
+            document.getElementById('guides-grid').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        // 自定义消息弹窗（替代浏览器alert）
+        window.showMessage = function(message, type = 'info') {
+            const existing = document.getElementById('custom-message-modal');
+            if (existing) existing.remove();
+            
+            const iconMap = {
+                success: 'fa-check-circle',
+                error: 'fa-times-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            };
+            const colorMap = {
+                success: '#4ade80',
+                error: '#ef4444',
+                warning: 'var(--lc-gold)',
+                info: 'var(--lc-gold)'
+            };
+            const bgGradient = {
+                success: 'linear-gradient(135deg, rgba(74,222,128,0.15), rgba(34,197,94,0.08))',
+                error: 'linear-gradient(135deg, rgba(239,68,68,0.15), rgba(185,28,28,0.08))',
+                warning: 'linear-gradient(135deg, rgba(201,169,97,0.15), rgba(161,129,57,0.08))',
+                info: 'linear-gradient(135deg, rgba(201,169,97,0.15), rgba(161,129,57,0.08))'
+            };
+            
+            const modal = document.createElement('div');
+            modal.id = 'custom-message-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.75);
+                backdrop-filter: blur(4px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                animation: fadeIn 0.2s ease;
+            `;
+            modal.innerHTML = `
+                <div style="
+                    background: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 100%);
+                    border: 1px solid rgba(201,169,97,0.3);
+                    border-radius: 16px;
+                    padding: 40px 48px;
+                    max-width: 420px;
+                    text-align: center;
+                    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8), 0 0 40px rgba(201,169,97,0.1);
+                    animation: scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+                ">
+                    <div style="
+                        width: 72px;
+                        height: 72px;
+                        margin: 0 auto 24px;
+                        border-radius: 50%;
+                        background: ${bgGradient[type]};
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border: 2px solid ${colorMap[type]}33;
+                    ">
+                        <i class="fas ${iconMap[type]}" style="font-size:2rem;color:${colorMap[type]};"></i>
+                    </div>
+                    <div style="font-size:1rem;color:#e5e5e5;line-height:1.8;white-space:pre-line;margin-bottom:28px;">${message}</div>
+                    <button id="message-confirm-btn" style="
+                        padding: 14px 48px;
+                        background: linear-gradient(135deg, var(--lc-gold) 0%, #b8942d 100%);
+                        border: none;
+                        border-radius: 10px;
+                        color: #000;
+                        font-weight: 700;
+                        font-size: 1rem;
+                        cursor: pointer;
+                        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                        box-shadow: 0 4px 15px rgba(201,169,97,0.3);
+                    ">
+                        确定
+                    </button>
+                </div>
+                <style>
+                    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                    @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+                    #message-confirm-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(201,169,97,0.4); }
+                </style>
+            `;
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) window.closeMessageModal();
+            });
+            document.body.appendChild(modal);
+            
+            // 绑定确定按钮事件
+            document.getElementById('message-confirm-btn').addEventListener('click', window.closeMessageModal);
+        };
+        
+        window.closeMessageModal = function() {
+            const modal = document.getElementById('custom-message-modal');
+            if (modal) {
+                modal.style.animation = 'fadeIn 0.15s ease reverse';
+                setTimeout(() => modal.remove(), 150);
+            }
+        };
+
+        // ESC关闭弹窗
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeGuideModal();
+                closeUserSubmitModal();
+            }
+        });
+
+        // ==================== 用户投稿攻略功能 ====================
+        // 生成罪人下拉选项
+        function generateSinnerOptions() {
+            return sinnerData.map(s => {
+                const name = s.name.split(' ')[0];
+                return `<option value="${name}">${name}</option>`;
+            }).join('');
+        }
+
+        // 生成人格下拉选项
+        function generatePersonaOptions(sinnerName) {
+            const sinner = sinnerData.find(s => s.name.includes(sinnerName));
+            if (!sinner) return '<option value="">请先选择罪人</option>';
+            return sinner.personalities.map(p => 
+                `<option value="${p.name}">${p.name}</option>`
+            ).join('');
+        }
+
+        // 用户提交记录存储（使用 localStorage）
+        function saveUserSubmission(guideData) {
+            const submissions = JSON.parse(localStorage.getItem('user_guide_submissions') || '[]');
+            submissions.unshift({
+                ...guideData,
+                submittedAt: new Date().toISOString(),
+                status: 'pending'
+            });
+            // 只保留最近50条记录
+            localStorage.setItem('user_guide_submissions', JSON.stringify(submissions.slice(0, 50)));
+        }
+
+        function getUserSubmissions() {
+            return JSON.parse(localStorage.getItem('user_guide_submissions') || '[]');
+        }
+
+        window.openUserSubmitModal = function() {
+            const existing = document.getElementById('user-submit-modal');
+            if (existing) existing.remove();
+            
+            const modal = document.createElement('div');
+            modal.id = 'user-submit-modal';
+            modal.className = 'custom-modal-overlay';
+            modal.innerHTML = `
+                <div class="custom-modal" style="min-width:560px;max-width:640px;max-height:85vh;overflow-y:auto;">
+                    <div class="custom-modal-header" style="border-bottom:1px solid var(--lc-border);padding-bottom:16px;margin-bottom:20px;">
+                        <i class="fas fa-edit custom-modal-icon" style="color:var(--lc-red);"></i>
+                        <div>
+                            <h2 class="custom-modal-title">投稿单通攻略</h2>
+                            <p style="font-size:0.85rem;color:var(--lc-text-muted);margin:4px 0 0;">分享你的单通技巧，帮助更多玩家</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 标签页切换 -->
+                    <div style="display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--lc-border);">
+                        <button id="tab-submit" onclick="switchSubmitTab('submit')" class="submit-tab active" style="flex:1;padding:12px;background:transparent;border:none;border-bottom:3px solid var(--lc-gold);color:var(--lc-gold);font-weight:600;cursor:pointer;transition:all 0.3s;">
+                            <i class="fas fa-plus-circle"></i> 提交攻略
+                        </button>
+                        <button id="tab-status" onclick="switchSubmitTab('status')" class="submit-tab" style="flex:1;padding:12px;background:transparent;border:none;border-bottom:3px solid transparent;color:var(--lc-text-muted);font-weight:600;cursor:pointer;transition:all 0.3s;">
+                            <i class="fas fa-history"></i> 我的投稿
+                        </button>
+                    </div>
+                    
+                    <!-- 提交表单面板 -->
+                    <div id="panel-submit">
+                        <div style="background:rgba(201,169,97,0.1);border-left:3px solid var(--lc-gold);padding:12px 16px;margin-bottom:20px;border-radius:0 6px 6px 0;">
+                            <div style="font-size:0.85rem;color:var(--lc-gold);font-weight:600;margin-bottom:4px;">
+                                <i class="fas fa-info-circle"></i> 投稿须知
+                            </div>
+                            <div style="font-size:0.8rem;color:var(--lc-text-secondary);line-height:1.6;">
+                                攻略提交后需要管理员审核通过才会显示在列表中，请耐心等待
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom:18px;">
+                            <label style="display:block;margin-bottom:8px;color:var(--lc-gold);font-weight:600;font-size:0.9rem;">
+                                <i class="fas fa-heading"></i> 攻略标题 <span style="color:var(--lc-red);">*</span>
+                            </label>
+                            <input type="text" id="user-guide-title" placeholder="例：李箱剑契15层单通攻略" style="width:100%;padding:12px 16px;background:var(--lc-bg-secondary);border:1px solid var(--lc-border);border-radius:8px;color:var(--lc-text);font-size:1rem;box-sizing:border-box;">
+                        </div>
+                        
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
+                            <div>
+                                <label style="display:block;margin-bottom:8px;color:var(--lc-gold);font-weight:600;font-size:0.9rem;">
+                                    <i class="fas fa-user"></i> 罪人 <span style="color:var(--lc-red);">*</span>
+                                </label>
+                                <select id="user-guide-sinner" onchange="updatePersonaSelect()" style="width:100%;padding:12px 16px;background:var(--lc-bg-secondary);border:1px solid var(--lc-border);border-radius:8px;color:var(--lc-text);box-sizing:border-box;cursor:pointer;">
+                                    <option value="">-- 请选择罪人 --</option>
+                                    ${generateSinnerOptions()}
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display:block;margin-bottom:8px;color:var(--lc-gold);font-weight:600;font-size:0.9rem;">
+                                    <i class="fas fa-mask"></i> 人格 <span style="color:var(--lc-red);">*</span>
+                                </label>
+                                <select id="user-guide-persona" style="width:100%;padding:12px 16px;background:var(--lc-bg-secondary);border:1px solid var(--lc-border);border-radius:8px;color:var(--lc-text);box-sizing:border-box;cursor:pointer;">
+                                    <option value="">-- 请先选择罪人 --</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
+                            <div>
+                                <label style="display:block;margin-bottom:8px;color:var(--lc-gold);font-weight:600;font-size:0.9rem;">
+                                    <i class="fas fa-layer-group"></i> 挑战层数 <span style="color:var(--lc-red);">*</span>
+                                </label>
+                                <select id="user-guide-floor" style="width:100%;padding:12px 16px;background:var(--lc-bg-secondary);border:1px solid var(--lc-border);border-radius:8px;color:var(--lc-text);box-sizing:border-box;cursor:pointer;">
+                                    <option value="5-2">5-H (困难)</option>
+                                    <option value="10">10层</option>
+                                    <option value="15">15层</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display:block;margin-bottom:8px;color:var(--lc-gold);font-weight:600;font-size:0.9rem;">
+                                    <i class="fas fa-photo-video"></i> 攻略类型
+                                </label>
+                                <select id="user-guide-media-type" style="width:100%;padding:12px 16px;background:var(--lc-bg-secondary);border:1px solid var(--lc-border);border-radius:8px;color:var(--lc-text);box-sizing:border-box;cursor:pointer;">
+                                    <option value="video">视频攻略</option>
+                                    <option value="image">图文攻略</option>
+                                    <option value="text">纯文本</option>
+                                    <option value="mixed">混合类型</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom:18px;">
+                            <label style="display:block;margin-bottom:8px;color:var(--lc-gold);font-weight:600;font-size:0.9rem;">
+                                <i class="fas fa-align-left"></i> 攻略内容 <span style="color:var(--lc-red);">*</span>
+                            </label>
+                            <textarea id="user-guide-content" rows="4" placeholder="详细描述你的单通技巧、配置要求、注意事项等..." style="width:100%;padding:12px 16px;background:var(--lc-bg-secondary);border:1px solid var(--lc-border);border-radius:8px;color:var(--lc-text);resize:vertical;box-sizing:border-box;font-family:inherit;"></textarea>
+                        </div>
+                        
+                        <div style="margin-bottom:18px;">
+                            <label style="display:block;margin-bottom:8px;color:var(--lc-gold);font-weight:600;font-size:0.9rem;">
+                                <i class="fas fa-link"></i> 视频/图片链接 <span style="color:var(--lc-text-muted);font-weight:400;">(每行一个)</span>
+                            </label>
+                            <textarea id="user-guide-media-urls" rows="3" placeholder="B站视频链接、YouTube链接或图片地址..." style="width:100%;padding:12px 16px;background:var(--lc-bg-secondary);border:1px solid var(--lc-border);border-radius:8px;color:var(--lc-text);resize:vertical;box-sizing:border-box;font-family:inherit;"></textarea>
+                        </div>
+                        
+                        <div style="margin-bottom:18px;">
+                            <label style="display:block;margin-bottom:8px;color:var(--lc-gold);font-weight:600;font-size:0.9rem;">
+                                <i class="fas fa-tags"></i> 标签 <span style="color:var(--lc-text-muted);font-weight:400;">(用逗号分隔)</span>
+                            </label>
+                            <input type="text" id="user-guide-tags" placeholder="新手友好, 低配置, 速通..." style="width:100%;padding:12px 16px;background:var(--lc-bg-secondary);border:1px solid var(--lc-border);border-radius:8px;color:var(--lc-text);box-sizing:border-box;">
+                        </div>
+                        
+                        <div class="custom-modal-footer" style="border-top:1px solid var(--lc-border);padding-top:20px;margin-top:24px;">
+                            <button class="custom-modal-btn custom-modal-btn-cancel" onclick="closeUserSubmitModal()">取消</button>
+                            <button class="custom-modal-btn" onclick="submitUserGuide()" style="background:linear-gradient(135deg,var(--lc-red),#c94f4f);color:#fff;">
+                                <i class="fas fa-paper-plane"></i> 提交攻略
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 我的投稿面板 -->
+                    <div id="panel-status" style="display:none;">
+                        <div id="my-submissions-list">
+                            <!-- 动态填充 -->
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeUserSubmitModal();
+            });
+        };
+
+        // 切换标签页
+        window.switchSubmitTab = function(tab) {
+            document.getElementById('tab-submit').style.borderBottomColor = tab === 'submit' ? 'var(--lc-gold)' : 'transparent';
+            document.getElementById('tab-submit').style.color = tab === 'submit' ? 'var(--lc-gold)' : 'var(--lc-text-muted)';
+            document.getElementById('tab-status').style.borderBottomColor = tab === 'status' ? 'var(--lc-gold)' : 'transparent';
+            document.getElementById('tab-status').style.color = tab === 'status' ? 'var(--lc-gold)' : 'var(--lc-text-muted)';
+            
+            document.getElementById('panel-submit').style.display = tab === 'submit' ? 'block' : 'none';
+            document.getElementById('panel-status').style.display = tab === 'status' ? 'block' : 'none';
+            
+            if (tab === 'status') {
+                renderMySubmissions();
+            }
+        };
+
+        // 渲染我的投稿列表
+        function renderMySubmissions() {
+            const container = document.getElementById('my-submissions-list');
+            const submissions = getUserSubmissions();
+            
+            if (submissions.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center;padding:40px 20px;color:var(--lc-text-muted);">
+                        <i class="fas fa-inbox" style="font-size:3rem;margin-bottom:16px;opacity:0.5;display:block;"></i>
+                        <p>暂无投稿记录</p>
+                        <p style="font-size:0.85rem;margin-top:8px;">提交攻略后可在此查看审核状态</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = submissions.map((s, idx) => {
+                const statusMap = {
+                    pending: { text: '待审核', color: 'var(--lc-gold)', icon: 'clock' },
+                    approved: { text: '已通过', color: '#22c55e', icon: 'check-circle' },
+                    rejected: { text: '已拒绝', color: 'var(--lc-red)', icon: 'times-circle' }
+                };
+                const status = statusMap[s.status] || statusMap.pending;
+                const date = new Date(s.submittedAt).toLocaleString('zh-CN');
+                
+                return `
+                    <div style="background:var(--lc-bg-secondary);border:1px solid var(--lc-border);border-radius:8px;padding:16px;margin-bottom:12px;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+                            <div style="flex:1;">
+                                <h4 style="color:var(--lc-text);font-size:1rem;margin:0 0 6px;">${s.title}</h4>
+                                <div style="font-size:0.8rem;color:var(--lc-text-muted);">
+                                    ${s.sinner} · ${s.persona} · ${s.floorLevel}层
+                                </div>
+                            </div>
+                            <span style="background:rgba(${status.color === 'var(--lc-gold)' ? '201,169,97' : status.color === '#22c55e' ? '34,197,94' : '201,79,79'},0.15);color:${status.color};padding:4px 10px;border-radius:4px;font-size:0.75rem;font-weight:600;white-space:nowrap;">
+                                <i class="fas fa-${status.icon}"></i> ${status.text}
+                            </span>
+                        </div>
+                        <div style="font-size:0.75rem;color:var(--lc-text-muted);">
+                            <i class="fas fa-calendar"></i> 提交时间: ${date}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 更新人格下拉框
+        window.updatePersonaSelect = function() {
+            const sinnerSelect = document.getElementById('user-guide-sinner');
+            const personaSelect = document.getElementById('user-guide-persona');
+            const selectedSinner = sinnerSelect.value;
+            
+            if (!selectedSinner) {
+                personaSelect.innerHTML = '<option value="">-- 请先选择罪人 --</option>';
+                return;
+            }
+            
+            personaSelect.innerHTML = '<option value="">-- 请选择人格 --</option>' + generatePersonaOptions(selectedSinner);
+        };
+
+        window.closeUserSubmitModal = function() {
+            const modal = document.getElementById('user-submit-modal');
+            if (modal) modal.remove();
+        };
+
+        window.submitUserGuide = async function() {
+            const titleEl = document.getElementById('user-guide-title');
+            const sinnerEl = document.getElementById('user-guide-sinner');
+            const personaEl = document.getElementById('user-guide-persona');
+            const floorEl = document.getElementById('user-guide-floor');
+            const mediaTypeEl = document.getElementById('user-guide-media-type');
+            const contentEl = document.getElementById('user-guide-content');
+            const mediaUrlsEl = document.getElementById('user-guide-media-urls');
+            const tagsEl = document.getElementById('user-guide-tags');
+
+            const title = titleEl ? titleEl.value.trim() : '';
+            const sinner = sinnerEl ? sinnerEl.value : '';
+            const persona = personaEl ? personaEl.value : '';
+            const floorLevel = floorEl ? floorEl.value : '5-2';
+            const mediaType = mediaTypeEl ? mediaTypeEl.value : 'video';
+            const content = contentEl ? contentEl.value.trim() : '';
+            const mediaUrlsRaw = mediaUrlsEl ? mediaUrlsEl.value : '';
+            const tagsRaw = tagsEl ? tagsEl.value : '';
+            
+            const mediaUrls = mediaUrlsRaw.split('\n').map(u => u.trim()).filter(u => u);
+            const tags = tagsRaw.split(/[,，]/).map(t => t.trim()).filter(t => t);
+
+            // 验证必填字段
+            let errors = [];
+            if (!title) errors.push('攻略标题');
+            if (!sinner) errors.push('罪人');
+            if (!persona) errors.push('人格');
+            if (!content) errors.push('攻略内容');
+            
+            if (errors.length > 0) {
+                showMessage('请填写以下必填项：' + errors.join('、'), 'warning');
+                return;
+            }
+
+            showLoading(true);
+
+            const guideData = {
+                title,
+                sinner,
+                persona,
+                floorLevel,
+                mediaType,
+                content,
+                mediaUrls,
+                coverUrl: null,
+                tags
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/guides/user-submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(guideData)
+                });
+
+                const result = await response.json();
+
+                showLoading(false);
+
+                if (result.code === 200 || result.success) {
+                    // 保存到本地记录
+                    saveUserSubmission(guideData);
+                    showMessage('攻略提交成功！\n\n审核通过后将显示在列表中。\n您可以在"我的投稿"标签页查看审核状态。', 'success');
+                    // 切换到我的投稿标签
+                    switchSubmitTab('status');
+                } else {
+                    showMessage('提交失败: ' + (result.message || '未知错误'), 'error');
+                }
+            } catch (error) {
+                showLoading(false);
+                showMessage('提交失败: ' + error.message, 'error');
+            }
+        };
+    </script>
+</body>
+</html>
